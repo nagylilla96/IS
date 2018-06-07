@@ -5,6 +5,10 @@ from skimage import img_as_float, exposure
 from sklearn import svm, metrics, model_selection
 from random import shuffle
 from collections import namedtuple
+from sklearn.decomposition import PCA
+import time
+
+start_time = time.time()
 
 size = 240, 160
 
@@ -46,9 +50,26 @@ X = np.concatenate((np.array(backgrounds).reshape((449, -1)), np.array(raccoons)
 y = blabel + rlabel
 
 X_train, X_test, y_train, y_test = model_selection.train_test_split(
-    X, y, test_size=0.25, random_state=42)
+    X, y, test_size=0.5, random_state=42)
 
 print("Training sets split")
+
+# Compute a PCA (eigenfaces) on the face dataset (treated as unlabeled
+# dataset): unsupervised feature extraction / dimensionality reduction
+n_components = 150
+
+print("Extracting the top %d eigenfaces from %d faces"
+      % (n_components, X_train.shape[0]))
+pca = PCA(n_components=n_components, svd_solver='randomized',
+          whiten=True).fit(X_train)
+
+# eigenfaces = pca.components_.reshape((n_components, 240, 320))
+
+print("Projecting the input data on the eigenfaces orthonormal basis")
+X_train_pca = pca.transform(X_train)
+X_test_pca = pca.transform(X_test)
+
+print("Done")
 
 # learnset = np.concatenate((data1,data2))
 # random_learn =  zip(learnset, blabel[:229] + rlabel[:70])
@@ -64,7 +85,7 @@ classifier = model_selection.GridSearchCV(svm.SVC(kernel='rbf', class_weight='ba
 print("Classifier initialized")
 
 # fit the data
-classifier.fit(X_train, y_train)
+classifier.fit(X_train_pca, y_train)
 
 print("Fitting done")
 
@@ -72,9 +93,11 @@ print("Fitting done")
 expected = blabel[229:] + rlabel[70:]
 
 # get the predicted values
-y_pred = classifier.predict(X_test)
+y_pred = classifier.predict(X_test_pca)
 
 print("Classification report for classifier %s:\n%s\n"
       % (classifier, metrics.classification_report(y_test, y_pred)))
 
 print(metrics.confusion_matrix(y_test, y_pred))
+
+print("Running time: %s s" % (time.time() - start_time))
