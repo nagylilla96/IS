@@ -5,6 +5,9 @@ from skimage import img_as_float, exposure
 from sklearn import svm, metrics, model_selection
 from random import shuffle
 from collections import namedtuple
+import time
+
+start_time = time.time()
 
 size = 240, 160
 
@@ -36,36 +39,32 @@ rlabel = ["raccoon"]*140
 learnlabel = []
 
 # prepare the learnset and the testset(flatten the images to 2 dimensions and concatenate them)
-# data1 = np.array(backgrounds[:229]).reshape((229, -1))
-# data2 = np.array(raccoons[:70]).reshape((70, -1))
-# data3 = np.array(backgrounds[229:]).reshape((220, -1))
-# data4 = np.array(raccoons[70:]).reshape((70, -1))
+data1 = np.array(backgrounds[:229]).reshape((229, -1))
+data2 = np.array(raccoons[:70]).reshape((70, -1))
+data3 = np.array(backgrounds[229:]).reshape((220, -1))
+data4 = np.array(raccoons[70:]).reshape((70, -1))
 
-X = np.concatenate((np.array(backgrounds).reshape((449, -1)), np.array(raccoons).reshape((140, -1))))
-y = blabel + rlabel
-
-X_train, X_test, y_train, y_test = model_selection.train_test_split(
-    X, y, test_size=0.25, random_state=42)
-
-# learnset = np.concatenate((data1,data2))
-# random_learn =  zip(learnset, blabel[:229] + rlabel[:70])
-# shuffle(random_learn)
-# learnset, learnlabel = zip(*random_learn)
-# testset = np.concatenate((data3,data4))
+#shuffle a data, then transform them back to sets
+learnset = np.concatenate((data1,data2))
+random_learn =  zip(learnset, blabel[:229] + rlabel[:70])
+shuffle(random_learn)
+learnset, learnlabel = zip(*random_learn)
+testset = np.concatenate((data3,data4))
 
 # initialize the svc classifier
 classifier = svm.SVC(C=1.0, kernel='linear', class_weight='balanced')
 
 # fit the data
-classifier.fit(X_train, y_train)
+classifier.fit(learnset, learnlabel)
 
 # prepare the expected label list
 expected = blabel[229:] + rlabel[70:]
 
 # get the predicted values
-y_pred = classifier.predict(X_test)
+predicted = classifier.predict(testset)
 
 print("Classification report for classifier %s:\n%s\n"
-      % (classifier, metrics.classification_report(y_test, y_pred)))
+      % (classifier, metrics.classification_report(expected, predicted)))
 
-print(metrics.confusion_matrix(y_test, y_pred))
+print(metrics.confusion_matrix(expected, predicted))
+print("Running time: %s s" % (time.time() - start_time))
