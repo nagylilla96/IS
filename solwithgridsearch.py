@@ -34,13 +34,6 @@ print("Data set read")
 # read the labels
 blabel = ["background"]*449
 rlabel = ["raccoon"]*140
-learnlabel = []
-
-# prepare the learnset and the testset(flatten the images to 2 dimensions and concatenate them)
-# data1 = np.array(backgrounds[:229]).reshape((229, -1))
-# data2 = np.array(raccoons[:70]).reshape((70, -1))
-# data3 = np.array(backgrounds[229:]).reshape((220, -1))
-# data4 = np.array(raccoons[70:]).reshape((70, -1))
 
 X = np.concatenate((np.array(backgrounds).reshape((449, -1)), np.array(raccoons).reshape((140, -1))))
 y = blabel + rlabel
@@ -49,12 +42,6 @@ X_train, X_test, y_train, y_test = model_selection.train_test_split(
     X, y, test_size=0.25, random_state=42)
 
 print("Training sets split")
-
-# learnset = np.concatenate((data1,data2))
-# random_learn =  zip(learnset, blabel[:229] + rlabel[:70])
-# shuffle(random_learn)
-# learnset, learnlabel = zip(*random_learn)
-# testset = np.concatenate((data3,data4))
 
 # initialize the svc classifier
 param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],

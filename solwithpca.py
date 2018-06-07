@@ -38,13 +38,6 @@ print("Data set read")
 # read the labels
 blabel = ["background"]*449
 rlabel = ["raccoon"]*140
-learnlabel = []
-
-# prepare the learnset and the testset(flatten the images to 2 dimensions and concatenate them)
-# data1 = np.array(backgrounds[:229]).reshape((229, -1))
-# data2 = np.array(raccoons[:70]).reshape((70, -1))
-# data3 = np.array(backgrounds[229:]).reshape((220, -1))
-# data4 = np.array(raccoons[70:]).reshape((70, -1))
 
 X = np.concatenate((np.array(backgrounds).reshape((449, -1)), np.array(raccoons).reshape((140, -1))))
 y = blabel + rlabel
@@ -54,16 +47,12 @@ X_train, X_test, y_train, y_test = model_selection.train_test_split(
 
 print("Training sets split")
 
-# Compute a PCA (eigenfaces) on the face dataset (treated as unlabeled
-# dataset): unsupervised feature extraction / dimensionality reduction
+# Principal Component Analysis (PCA) - decomposes data to a lower dimension space
+# Improved running time, takes out only 150 components out of the full set
 n_components = 150
 
-print("Extracting the top %d eigenfaces from %d faces"
-      % (n_components, X_train.shape[0]))
 pca = PCA(n_components=n_components, svd_solver='randomized',
           whiten=True).fit(X_train)
-
-# eigenfaces = pca.components_.reshape((n_components, 240, 320))
 
 print("Projecting the input data on the eigenfaces orthonormal basis")
 X_train_pca = pca.transform(X_train)
@@ -71,13 +60,9 @@ X_test_pca = pca.transform(X_test)
 
 print("Done")
 
-# learnset = np.concatenate((data1,data2))
-# random_learn =  zip(learnset, blabel[:229] + rlabel[:70])
-# shuffle(random_learn)
-# learnset, learnlabel = zip(*random_learn)
-# testset = np.concatenate((data3,data4))
-
-# initialize the svc classifier
+# initialize the SVC(Support Vector Machine) classifier with GridSearchCV
+# which will probe the values against the param-grid dictionary, as also given by
+# the 'rbf' kernel (Radial Basis Function), which aids classification
 param_grid = {'C': [1e3, 5e3, 1e4, 5e4, 1e5],
               'gamma': [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.1], }
 classifier = model_selection.GridSearchCV(svm.SVC(kernel='rbf', class_weight='balanced'), param_grid)
