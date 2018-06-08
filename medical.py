@@ -1,16 +1,15 @@
 import numpy as np
-
+import time
 from PIL import Image
 from skimage import img_as_float, exposure
 from sklearn import svm, metrics, model_selection
 from random import shuffle
 from collections import namedtuple
 from sklearn.decomposition import PCA
-import time
 
 start_time = time.time()
 
-size = 240, 160
+size = 920, 640
 
 healthy = []
 glaucoma = []
@@ -23,7 +22,7 @@ diabet = []
 # 	- normalize the contrast (with percentile and rescale_intensity) 
 def readdataset(dataset, folder, tag, nr):
 	for x in range(1,nr):
-		img = Image.open('./everything/' + folder + '/' + '{0:02}'.format(x) + tag + '.jpg').convert('LA')
+		img = Image.open('./everything/' + folder + '/' + '{0:02}'.format(x) + tag + '.jpg')
 		img = img.resize(size, 0)
 		image = np.array(img)
 		p2, p98 = np.percentile(image, (2, 98))
